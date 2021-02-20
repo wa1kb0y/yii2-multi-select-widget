@@ -11,6 +11,7 @@ namespace dosamigos\multiselect;
 
 use yii\base\InvalidParamException;
 use yii\helpers\Json;
+use yii\web\JsExpression;
 
 /**
  * MultiSelectListBox renders a [Louis Cuny Multiselect listbox widget](http://loudev.com/)
@@ -23,19 +24,81 @@ use yii\helpers\Json;
  */
 class MultiSelectListBox extends MultiSelect
 {
-    /**
-     * Registers MultiSelect JQuery plugin and the related events
-     * @throws InvalidParamException
-     */
-    public $options=['multiple'=>'multiple'];
+    public $ajax;
+
+    public $seleactAllEnabled = true;
+    public $seleactAllText = 'Select All';
+    public $deseleactAllText = 'Deselect All';
+
+    public $searchEnabled = true;
+
+
+    public function run()
+    {
+        $id = $this->options['id'];
+
+        parent::run();
+
+        if ($this->seleactAllEnabled) {
+            echo '<a href="#" id="'.$id.'-select-all" class="ms-select-all">'.$this->seleactAllText.'</a>';
+            echo '<a href="#" id="'.$id.'-deselect-all" class="ms-deselect-all">Deselect All</a>';
+        }
+    }
+
+    public function searchOptions()
+    {
+        return [
+            'selectableHeader' => "<input type='text' class='search-input form-control mb-1' autocomplete='off' placeholder='Filter...'>",
+            'selectionHeader' => "<input type='text' class='search-input form-control mb-1' autocomplete='off' placeholder='Filter...'>",
+            'afterInit' => 
+                new JsExpression('function(ms) {
+                    var that = this,
+                        $selectableSearch = that.$selectableUl.prev(),
+                        $selectionSearch = that.$selectionUl.prev(),
+                        selectableSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selectable:not(.ms-selected)\',
+                        selectionSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selection.ms-selected\';
+
+                    console.log(that.$selectableUl);
+
+                    that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+                    .on(\'keydown\', function(e){
+                      if (e.which === 40){
+                        that.$selectableUl.focus();
+                        return false;
+                      }
+                    });
+
+                    that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
+                    .on(\'keydown\', function(e){
+                      if (e.which == 40){
+                        that.$selectionUl.focus();
+                        return false;
+                      }
+                    });
+                }'),
+            // 'afterSelect' => new JsExpression("function() {
+            //     this.qs1.cache();
+            //     this.qs2.cache();
+            // }"),
+            // 'afterDeselect' => new JsExpression("function() {
+            //     this.qs1.cache();
+            //     this.qs2.cache();
+            // }"),
+        ];
+    }
     
     protected function registerPlugin()
     {
         $view = $this->getView();
 
         MultiSelectListBoxAsset::register($view);
+        QuicksearchAsset::register($view);
 
         $id = $this->options['id'];
+
+        if ($this->searchEnabled) {
+            $this->clientOptions = array_merge($this->clientOptions, $this->searchOptions());
+        }
 
         $options = $this->clientOptions !== false && !empty($this->clientOptions)
             ? Json::encode($this->clientOptions)
@@ -43,5 +106,36 @@ class MultiSelectListBox extends MultiSelect
 
         $js = "jQuery('#$id').multiSelect($options);";
         $view->registerJs($js);
+
+        if ($this->ajax) {
+            $view->registerJs('
+                $.ajax({
+                    url: "'.$this->ajax['url'].'",
+                    type: "GET",
+                    success: function (qx) {
+                        $.each(qx, function (i, item) {
+                            if (item.id && item.text) {
+                                $("#'.$id.'").multiSelect("addOption", { value: item.id, text: item.text });
+                            }
+                        });
+                    },
+                    error: function () {
+                    }
+                });
+            ');
+        }
+
+        if ($this->seleactAllEnabled) {
+            $view->registerJs('
+                $("#'.$id.'-select-all").click(function(){
+                  $("#'.$id.'").multiSelect("select_all");
+                  return false;
+                });
+                $("#'.$id.'-deselect-all").click(function(){
+                  $("#'.$id.'").multiSelect("deselect_all");
+                  return false;
+                });
+            ');
+        }
     }
 }

@@ -24,6 +24,6 @@ class MultiSelectAsset extends AssetBundle
     ];
 
     public $depends = [
-        'yii\bootstrap\BootstrapPluginAsset'
+        'yii\bootstrap4\BootstrapPluginAsset'
     ];
 }

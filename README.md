@@ -80,6 +80,54 @@ use yii\web\JsExpression;
 ]) ?>
 ```
 
+
+### AJAX using example
+```
+<?= $form->field($model, 'cities')->widget(MultiSelectListBox::class, [
+    //'data' => [0 => 'Initial data', 1 => 'Second'],
+    'ajax' => [
+        'url' => Url::to(['controller/cities']),
+    ],
+    //'seleactAllEnabled' => true,
+    //'searchEnabled' => true,
+    'clientOptions' => [
+        //'afterInit' => new JsExpression('function(ms){ console.log(ms); }')
+        //'afterSelect' => new JsExpression('function(ms){ alert("select"); }'),
+        //'afterDeselect' => new JsExpression('function(ms){ alert("deselect"); }'),
+    ]
+]) ?>
+```
+
+Controller:
+```
+public function actionCities($q = null, $id = null)
+{
+    Yii::$app->response->format = Response::FORMAT_JSON;
+    $empty_item = ['id' => '', 'text' => ''];
+    $query = new Query;
+    $query->select('id, city')
+        ->distinct()
+        ->from('cities')
+        ->limit(20);
+    if ($q) {
+        $query->where(['like', 'city', $q]);
+    }
+    $command = $query->createCommand();
+    $data = $command->queryAll();
+    if (!$data) {
+        $results[] = $empty_item;
+    }
+    foreach ($data as $item) {
+        $results[] = [
+            'id' => $item['id'],
+            'text' => $item['city'],
+        ];
+    }
+
+    return $results;
+}
+```
+
 Further Information
 -------------------
 

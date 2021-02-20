@@ -44,9 +44,7 @@ class MultiSelect extends InputWidget
      */
     public function init()
     {
-        if (empty($this->data)) {
-            throw new  InvalidConfigException('"Multiselect::$data" attribute cannot be blank or an empty array.');
-        }
+        $this->options = array_merge($this->options, ['multiple' => 'multiple']);
         parent::init();
     }
 
