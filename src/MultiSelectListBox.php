@@ -58,8 +58,6 @@ class MultiSelectListBox extends MultiSelect
                         selectableSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selectable:not(.ms-selected)\',
                         selectionSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selection.ms-selected\';
 
-                    console.log(that.$selectableUl);
-
                     that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
                     .on(\'keydown\', function(e){
                       if (e.which === 40){
