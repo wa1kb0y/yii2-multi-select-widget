@@ -90,7 +90,6 @@ class MultiSelectListBox extends MultiSelect
         $view = $this->getView();
 
         MultiSelectListBoxAsset::register($view);
-        QuicksearchAsset::register($view);
 
         $id = $this->options['id'];
 

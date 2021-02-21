@@ -25,5 +25,6 @@ class MultiSelectListBoxAsset extends AssetBundle
 
     public $depends = [
         'yii\web\JqueryAsset',
+        'dosamigos\multiselect\QuicksearchAsset',
     ];
 }
