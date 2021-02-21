@@ -50,41 +50,40 @@ class MultiSelectListBox extends MultiSelect
         return [
             'selectableHeader' => "<input type='text' class='search-input form-control mb-1' autocomplete='off' placeholder='Filter...'>",
             'selectionHeader' => "<input type='text' class='search-input form-control mb-1' autocomplete='off' placeholder='Filter...'>",
-            'afterInit' => 
-                new JsExpression('function(ms) {
-                    var that = this,
-                        $selectableSearch = that.$selectableUl.prev(),
-                        $selectionSearch = that.$selectionUl.prev(),
-                        selectableSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selectable:not(.ms-selected)\',
-                        selectionSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selection.ms-selected\';
+            'afterInit' => new JsExpression('function(ms) {
+                var that = this,
+                    selectableSearch = that.$selectableUl.prev(),
+                    selectionSearch = that.$selectionUl.prev(),
+                    selectableSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selectable:not(.ms-selected)\',
+                    selectionSearchString = \'#\'+that.$container.attr(\'id\')+\' .ms-elem-selection.ms-selected\';
+                console.log(this);
+                that.qs1 = selectableSearch.quicksearch(selectableSearchString)
+                .on(\'keydown\', function(e){
+                  if (e.which === 40){
+                    that.$selectableUl.focus();
+                    return false;
+                  }
+                });
 
-                    that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
-                    .on(\'keydown\', function(e){
-                      if (e.which === 40){
-                        that.$selectableUl.focus();
-                        return false;
-                      }
-                    });
-
-                    that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
-                    .on(\'keydown\', function(e){
-                      if (e.which == 40){
-                        that.$selectionUl.focus();
-                        return false;
-                      }
-                    });
-                }'),
-            // 'afterSelect' => new JsExpression("function() {
-            //     this.qs1.cache();
-            //     this.qs2.cache();
-            // }"),
-            // 'afterDeselect' => new JsExpression("function() {
-            //     this.qs1.cache();
-            //     this.qs2.cache();
-            // }"),
+                that.qs2 = selectionSearch.quicksearch(selectionSearchString)
+                .on(\'keydown\', function(e){
+                  if (e.which == 40){
+                    that.$selectionUl.focus();
+                    return false;
+                  }
+                });
+            }'),
+            'afterSelect' => new JsExpression("function() {
+                this.qs1.cache();
+                this.qs2.cache();
+            }"),
+            'afterDeselect' => new JsExpression("function() {
+                this.qs1.cache();
+                this.qs2.cache();
+            }"),
         ];
     }
-    
+
     protected function registerPlugin()
     {
         $view = $this->getView();
@@ -94,7 +93,7 @@ class MultiSelectListBox extends MultiSelect
         $id = $this->options['id'];
 
         if ($this->searchEnabled) {
-            $this->clientOptions = array_merge($this->clientOptions, $this->searchOptions());
+            $this->clientOptions = array_merge($this->searchOptions(), $this->clientOptions);
         }
 
         $options = $this->clientOptions !== false && !empty($this->clientOptions)
@@ -115,6 +114,7 @@ class MultiSelectListBox extends MultiSelect
                                 $("#'.$id.'").multiSelect("addOption", { value: item.id, text: item.text });
                             }
                         });
+                        $("#'.$id.'").multiSelect("refresh");
                     },
                     error: function () {
                     }
